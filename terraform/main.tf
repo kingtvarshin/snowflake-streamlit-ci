@@ -30,5 +30,3 @@ resource "null_resource" "upload_streamlit_script" {
   }
 }
 
-
-
