@@ -48,3 +48,33 @@ variable "app_folder_name" {
   default     = "app1"
 
 }
+
+variable "apps" {
+  description = "List of apps with their configurations"
+  type = list(object({
+    app_name         = string
+    app_folder_name  = string
+    database         = string
+    schema           = string
+  }))
+  default = [
+    {
+      app_name         = "app1"
+      app_folder_name  = "app1"
+      database         = "STREAMLIT_APPS"
+      schema           = "APP"
+    },
+    {
+      app_name         = "app2"
+      app_folder_name  = "app2"
+      database         = "STREAMLIT_APPS"
+      schema           = "APP"
+    },
+    {
+      app_name         = "app3"
+      app_folder_name  = "app3"
+      database         = "STREAMLIT_APPS"
+      schema           = "APP"
+    }
+  ]
+}
