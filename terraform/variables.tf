@@ -39,29 +39,29 @@ variable "snowflake_warehouse" {
 variable "apps" {
   description = "List of apps with their configurations"
   type = list(object({
-    app_name         = string
-    stage_name  = string
-    database         = string
-    schema           = string
+    app_name   = string
+    stage_name = string
+    database   = string
+    schema     = string
   }))
   default = [
     {
-      app_name         = "app1"
-      stage_name  = "app1"
-      database         = "STREAMLIT_APPS"
-      schema           = "APP"
+      app_name   = "app1"
+      stage_name = "app1"
+      database   = "STREAMLIT_APPS"
+      schema     = "APP"
     },
     {
-      app_name         = "app2"
-      stage_name  = "app2"
-      database         = "STREAMLIT_APPS"
-      schema           = "APP"
+      app_name   = "app2"
+      stage_name = "app2"
+      database   = "STREAMLIT_APPS"
+      schema     = "APP"
     },
     {
-      app_name         = "app3"
-      stage_name  = "app3"
-      database         = "STREAMLIT_APPS"
-      schema           = "APP"
+      app_name   = "app3"
+      stage_name = "app3"
+      database   = "STREAMLIT_APPS"
+      schema     = "APP"
     }
   ]
 }
