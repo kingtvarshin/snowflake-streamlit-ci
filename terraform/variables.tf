@@ -30,49 +30,36 @@ variable "snowflake_role" {
 #   type        = string
 # }
 
-variable "database" {
-  description = "Snowflake database for app"
+variable "snowflake_warehouse" {
+  description = "Warehouse to use"
   type        = string
-  default     = "STREAMLIT_APPS"
-}
-
-variable "schema" {
-  description = "Schema for app"
-  type        = string
-  default     = "APP1"
-}
-
-variable "app_folder_name" {
-  description = "Folder name for the Streamlit app"
-  type        = string
-  default     = "app1"
-
+  default     = "COMPUTE_WH"
 }
 
 variable "apps" {
   description = "List of apps with their configurations"
   type = list(object({
     app_name         = string
-    app_folder_name  = string
+    stage_name  = string
     database         = string
     schema           = string
   }))
   default = [
     {
       app_name         = "app1"
-      app_folder_name  = "app1"
+      stage_name  = "app1"
       database         = "STREAMLIT_APPS"
       schema           = "APP"
     },
     {
       app_name         = "app2"
-      app_folder_name  = "app2"
+      stage_name  = "app2"
       database         = "STREAMLIT_APPS"
       schema           = "APP"
     },
     {
       app_name         = "app3"
-      app_folder_name  = "app3"
+      stage_name  = "app3"
       database         = "STREAMLIT_APPS"
       schema           = "APP"
     }

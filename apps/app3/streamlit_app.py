@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import json
-from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode, DataReturnMode, JsCode
+import datetime
 
 st.set_page_config(page_title="Incident Management", layout="wide")
 
@@ -34,72 +34,155 @@ if selected_teams:
 if filter_val:
     filtered_df = filtered_df[filtered_df[filter_col].astype(str).str.contains(filter_val, case=False, na=False)]
 
+# Convert date columns to datetime
+for date_col in ["record_created_on", "record_updated_on"]:
+    if date_col in filtered_df.columns:
+        filtered_df[date_col] = pd.to_datetime(filtered_df[date_col], errors="coerce")
+
 st.title("🚨 Incident Management Dashboard")
-st.caption("Edit incidents directly in the table. Select multiple rows and apply changes to a column across all selected rows.")
+st.caption("Bulk or individual edit of incidents. Select rows and update fields for all selected.")
 
-# AG Grid setup
+# Toggle for table editability
+editable = st.toggle("Enable Table Editing", value=False)
+
 edit_cols = [c for c in df.columns if c not in ["tagged"]]
-gb = GridOptionsBuilder.from_dataframe(filtered_df[edit_cols])
-gb.configure_selection('multiple', use_checkbox=True)
-for col in edit_cols:
-    if col == "incident_id" or col == "incident_number":
-        gb.configure_column(col, editable=False)
-    else:
-        gb.configure_column(col, editable=True)
-grid_options = gb.build()
 
-response = AgGrid(
+# Set column config for data_editor
+column_config = {}
+for col in edit_cols:
+    if col == "incident_id":
+        column_config[col] = st.column_config.NumberColumn(
+            col.replace("_", " ").title(),
+            disabled=True
+        )
+    elif col == "incident_number":
+        column_config[col] = st.column_config.TextColumn(
+            col.replace("_", " ").title(),
+            disabled=True
+        )
+    elif col == "failure_category":
+        column_config[col] = st.column_config.SelectboxColumn(
+            col.replace("_", " ").title(),
+            options=["Hardware", "Software"]
+        )
+    elif col in [
+        "record_created_on",
+        "record_updated_on"
+    ]:
+        column_config[col] = st.column_config.DatetimeColumn(
+            col.replace("_", " ").title()
+        )
+    elif col == "comments":
+        column_config[col] = st.column_config.TextColumn(
+            col.replace("_", " ").title(),
+            width="large"
+        )
+    elif col == "actual_time_spent_in_minutes":
+        column_config[col] = st.column_config.NumberColumn(
+            col.replace("_", " ").title(),
+            step=1,
+            format="%.2f"
+        )
+    else:
+        column_config[col] = st.column_config.TextColumn(
+            col.replace("_", " ").title()
+        )
+
+st.write("### Incident Table (Edit single rows directly below)")
+edited_df = st.data_editor(
     filtered_df[edit_cols],
-    gridOptions=grid_options,
-    update_mode=GridUpdateMode.MODEL_CHANGED | GridUpdateMode.SELECTION_CHANGED,
-    data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
-    fit_columns_on_grid_load=True,
-    enable_enterprise_modules=False,
-    allow_unsafe_jscode=True,
-    height=400,
-    reload_data=False
+    column_config=column_config,
+    disabled=not editable,
+    use_container_width=True,
+    hide_index=True,
+    num_rows="fixed"
 )
 
-# Get selected rows and edited data
-selected_rows = response.get("selected_rows")
-if not isinstance(selected_rows, list):
-    selected_rows = []
+if editable and st.button("Save Table Changes"):
+    for idx, row in edited_df.iterrows():
+        df.loc[df["incident_id"] == row["incident_id"], edit_cols] = row[edit_cols].values
+    df_save = df.drop(columns=["tagged"]).copy()
+    for date_col in ["record_created_on", "record_updated_on"]:
+        if date_col in df_save.columns:
+            df_save[date_col] = df_save[date_col].apply(
+                lambda x: x.isoformat() if pd.notnull(x) else ""
+            )
 
-edited_df = pd.DataFrame(response["data"])
+    with open(DATA_FILE, "w") as f:
+        json.dump(df_save.to_dict(orient="records"), f, indent=2)
+    st.success("Table changes saved!")
+    st.rerun()
 
-st.write("Select rows and edit cells directly. To apply a value from one row to all selected rows in a column, use the controls below.")
+st.write("---")
+st.write("### Bulk Edit Selected Incidents")
+selected_ids = st.multiselect(
+    "Select Incident(s) to Edit",
+    filtered_df["incident_id"],
+    format_func=lambda x: f"ID {x} - {df[df['incident_id']==x]['incident_number'].values[0]}"
+)
 
-if selected_rows:
-    selected_ids = [row["incident_id"] for row in selected_rows]
-    selected_ids = [row["incident_id"] for row in selected_rows]
-    st.write(f"Selected Incident IDs: {selected_ids}")
+if selected_ids:
+    st.popover("Bulk Edit Selected Incidents", use_container_width=True)
+    with st.form("bulk_edit_form"):
+        st.write("Enter new values for fields you want to update. Leave blank to skip.")
+        bulk_edit_values = {}
+        for col in edit_cols:
+            if col == "incident_number":
+                continue  # skip editing incident_number in bulk
+            if col == "failure_category":
+                bulk_edit_values[col] = st.selectbox(
+                    f"{col.replace('_', ' ').title()} (leave blank to skip)",
+                    options=["", "Hardware", "Software"]
+                )
+            elif col in ["record_created_on", "record_updated_on"]:
+                date_val = st.date_input(
+                    f"{col.replace('_', ' ').title()} - Date (leave blank to skip)",
+                    value=None
+                )
+                time_val = st.time_input(
+                    f"{col.replace('_', ' ').title()} - Time (leave blank to skip)",
+                    value=datetime.time(0, 0)
+                )
+                if date_val is not None:
+                    bulk_edit_values[col] = datetime.datetime.combine(date_val, time_val)
+                else:
+                    bulk_edit_values[col] = None
+            elif col == "comments":
+                bulk_edit_values[col] = st.text_area(f"{col.replace('_', ' ').title()} (leave blank to skip)", value="")
+            elif col == "actual_time_spent_in_minutes":
+                bulk_edit_values[col] = st.text_input(f"{col.replace('_', ' ').title()} (leave blank to skip)", value="")
+            else:
+                bulk_edit_values[col] = st.text_input(f"{col.replace('_', ' ').title()} (leave blank to skip)", value="")
+        submitted_bulk = st.form_submit_button("Apply Changes to All Selected")
+        if submitted_bulk:
+            for eid in selected_ids:
+                for col in edit_cols:
+                    if col == "incident_number":
+                        continue
+                    val = bulk_edit_values[col]
+                    # Handle skip logic for dropdown and datetime
+                    if col == "failure_category" and val == "":
+                        continue
+                    if col in ["record_created_on", "record_updated_on"] and val is None:
+                        continue
+                    if isinstance(val, str) and val.strip() == "":
+                        continue
+                    if col == "actual_time_spent_in_minutes":
+                        try:
+                            val = float(val)
+                        except:
+                            val = None
+                    df.loc[df["incident_id"] == eid, col] = val
+            df_save = df.drop(columns=["tagged"]).copy()
+            for date_col in ["record_created_on", "record_updated_on"]:
+                if date_col in df_save.columns:
+                    df_save[date_col] = df_save[date_col].apply(
+                        lambda x: x.isoformat() if pd.notnull(x) and isinstance(x, (datetime.datetime, pd.Timestamp)) else ""
+                    )
 
-    # Choose column to propagate
-    col_to_apply = st.selectbox("Column to propagate", [c for c in edit_cols if c not in ["incident_id", "incident_number"]])
-    row_to_copy = st.selectbox("Row to copy from", selected_ids, format_func=lambda x: f"ID {x}")
-    if st.button("Apply value from selected row to all selected rows in this column"):
-        value = edited_df.loc[edited_df["incident_id"] == row_to_copy, col_to_apply].values[0]
-        for eid in selected_ids:
-            edited_df.loc[edited_df["incident_id"] == eid, col_to_apply] = value
-        st.success(f"Value '{value}' applied to column '{col_to_apply}' for all selected rows.")
+            with open(DATA_FILE, "w") as f:
+                json.dump(df_save.to_dict(orient="records"), f, indent=2)
+            st.success("Bulk update successful!")
+            st.rerun()
 
-    # Save changes
-    if st.button("Save All Changes"):
-        # Update the main df with edited_df
-        for idx, row in edited_df.iterrows():
-            df.loc[df["incident_id"] == row["incident_id"], edit_cols] = row[edit_cols].values
-        df_save = df.drop(columns=["tagged"])
-        with open(DATA_FILE, "w") as f:
-            json.dump(df_save.to_dict(orient="records"), f, indent=2)
-        st.success("All changes saved to JSON!")
-        st.rerun()
-else:
-    # Save changes for all rows if edited
-    if st.button("Save All Changes"):
-        for idx, row in edited_df.iterrows():
-            df.loc[df["incident_id"] == row["incident_id"], edit_cols] = row[edit_cols].values
-        df_save = df.drop(columns=["tagged"])
-        with open(DATA_FILE, "w") as f:
-            json.dump(df_save.to_dict(orient="records"), f, indent=2)
-        st.success("All changes saved to JSON!")
-        st.rerun()
+st.write("---")
