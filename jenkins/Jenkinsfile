@@ -1,9 +1,5 @@
 pipeline {
-  agent {
-    docker {
-      image 'hashicorp/terraform:latest'
-      label 'rasberry'
-    }
+  agent { label 'rasberry' }
   }
 
   parameters {
