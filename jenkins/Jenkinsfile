@@ -1,0 +1,90 @@
+pipeline {
+  agent any
+
+  parameters {
+    string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Git branch to deploy')
+    choice(name: 'TF_ACTION', choices: ['plan', 'apply', 'destroy'], description: 'Terraform action to run')
+  }
+
+  environment {
+    SNOWFLAKE_ACCOUNT_NAME = credentials('snowflake_account_name')
+    SNOWFLAKE_ORG_NAME     = credentials('snowflake_org_name')
+    SNOWFLAKE_USER         = credentials('snowflake_user')
+    SNOWFLAKE_PASSWORD     = credentials('snowflake_password')
+  }
+
+  stages {
+    stage('Clone Repo') {
+      steps {
+        git url: 'https://github.com/kingtvarshin/snowflake-streamlit-ci.git', branch: "${params.BRANCH_NAME}"
+      }
+    }
+    stage('Terraform Init') {
+      steps {
+        dir('terraform') {
+          sh 'terraform init'
+        }
+      }
+    }
+    stage('Terraform Plan') {
+      when {
+        anyOf {
+          expression { params.TF_ACTION == 'plan' }
+          expression { params.TF_ACTION == 'apply' }
+        }
+      }
+      steps {
+        dir('terraform') {
+          sh '''
+            terraform plan \
+              -out=tfplan \
+              -var="snowflake_account_name=${SNOWFLAKE_ACCOUNT_NAME}" \
+              -var="snowflake_org_name=${SNOWFLAKE_ORG_NAME}" \
+              -var="snowflake_user=${SNOWFLAKE_USER}" \
+              -var="snowflake_password=${SNOWFLAKE_PASSWORD}"
+          '''
+        }
+      }
+    }
+    stage('Terraform Apply') {
+      when {
+        expression { params.TF_ACTION == 'apply' }
+      }
+      steps {
+        dir('terraform') {
+          sh '''
+            terraform apply -auto-approve tfplan \
+              -var="snowflake_account_name=${SNOWFLAKE_ACCOUNT_NAME}" \
+              -var="snowflake_org_name=${SNOWFLAKE_ORG_NAME}" \
+              -var="snowflake_user=${SNOWFLAKE_USER}" \
+              -var="snowflake_password=${SNOWFLAKE_PASSWORD}"
+          '''
+        }
+      }
+    }
+    stage('Terraform Destroy') {
+      when {
+        expression { params.TF_ACTION == 'destroy' }
+      }
+      steps {
+        dir('terraform') {
+          sh '''
+            terraform destroy -auto-approve \
+              -var="snowflake_account_name=${SNOWFLAKE_ACCOUNT_NAME}" \
+              -var="snowflake_org_name=${SNOWFLAKE_ORG_NAME}" \
+              -var="snowflake_user=${SNOWFLAKE_USER}" \
+              -var="snowflake_password=${SNOWFLAKE_PASSWORD}"
+          '''
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      dir('terraform') {
+        archiveArtifacts artifacts: 'tfplan', allowEmptyArchive: true, fingerprint: true
+      }
+    }
+  }
+}
