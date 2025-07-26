@@ -1,6 +1,8 @@
 pipeline {
   agent {
-    label 'rasberry'{
+    docker {
+      image 'hashicorp/terraform:latest'
+      label 'rasberry'
     }
   }
 
@@ -18,17 +20,11 @@ pipeline {
 
   stages {
     stage('Clone Repo') {
-      agent {
-        docker { image 'hashicorp/terraform:latest' }
-      }
       steps {
         git url: 'https://github.com/kingtvarshin/snowflake-streamlit-ci.git', branch: "${params.BRANCH_NAME}"
       }
     }
     stage('Terraform Init') {
-      agent {
-        docker { image 'hashicorp/terraform:latest' }
-      }
       steps {
         dir('terraform') {
           sh 'terraform init'
@@ -36,9 +32,6 @@ pipeline {
       }
     }
     stage('Terraform Plan') {
-      agent {
-        docker { image 'hashicorp/terraform:latest' }
-      }
       when {
         anyOf {
           expression { params.TF_ACTION == 'plan' }
