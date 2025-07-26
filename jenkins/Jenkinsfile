@@ -1,6 +1,5 @@
 pipeline {
   agent { label 'rasberry' }
-  }
 
   parameters {
     string(name: 'BRANCH_NAME', defaultValue: 'feature/app1-streamlit-setup', description: 'Git branch to deploy')
