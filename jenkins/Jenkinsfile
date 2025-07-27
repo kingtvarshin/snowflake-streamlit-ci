@@ -11,7 +11,7 @@ pipeline {
     SNOWFLAKE_ORG_NAME     = credentials('SNOWFLAKE_ORG_NAME')
     SNOWFLAKE_USER         = credentials('SNOWFLAKE_USER')
     SNOWFLAKE_PASSWORD     = credentials('SNOWFLAKE_PASSWORD')
-    PATH                   = "/usr/local/bin:/usr/bin:/bin:/snap/bin/terraform" // Add the path where terraform is installed
+    PATH                   = "/usr/local/bin:/usr/bin:/bin:/snap/bin" // Add the path where terraform is installed
   }
 
   stages {
