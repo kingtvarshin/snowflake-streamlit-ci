@@ -50,6 +50,10 @@ pipeline {
         }
       }
     }
+  }
+}
+
+
   //   stage('Terraform Apply') {
   //     when {
   //       expression { params.TF_ACTION == 'apply' }
@@ -82,7 +86,7 @@ pipeline {
   //       }
   //     }
   //   }
-  }
+  // }
 
   // post {
   //   success {
@@ -91,4 +95,4 @@ pipeline {
   //     }
   //   }
   // }
-}
+// }
