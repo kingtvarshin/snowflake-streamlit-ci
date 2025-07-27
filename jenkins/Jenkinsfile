@@ -1,7 +1,7 @@
 pipeline {
   agent { label 'rasberry' }
   options {
-    ansiColor('xterm')
+    wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm'])
   }
   
   parameters {
