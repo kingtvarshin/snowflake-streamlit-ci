@@ -14,13 +14,24 @@ pipeline {
     SNOWFLAKE_ORG_NAME     = credentials('SNOWFLAKE_ORG_NAME')
     SNOWFLAKE_USER         = credentials('SNOWFLAKE_USER')
     SNOWFLAKE_PASSWORD     = credentials('SNOWFLAKE_PASSWORD')
-    PATH                   = "/usr/local/bin:/usr/bin:/bin:/snap/bin" // Add the path where terraform is installed
+    PATH                   = "/usr/local/bin:/usr/bin:/bin:/snap/bin"
   }
 
   stages {
     stage('Clone Repo') {
       steps {
         git url: 'https://github.com/kingtvarshin/snowflake-streamlit-ci.git', branch: "${params.BRANCH_NAME}"
+      }
+    }
+    stage('Restore tfstate') {
+      steps {
+        dir('terraform') {
+          script {
+            if (fileExists("${WORKSPACE}/terraform.tfstate")) {
+              sh 'cp ${WORKSPACE}/terraform.tfstate .'
+            }
+          }
+        }
       }
     }
     stage('Terraform Init') {
@@ -47,6 +58,46 @@ pipeline {
               -var="snowflake_user=${SNOWFLAKE_USER}" \
               -var="snowflake_password=${SNOWFLAKE_PASSWORD}"
           '''
+        }
+      }
+    }
+
+    stage('Terraform Apply') {
+      when {
+        expression { params.TF_ACTION == 'apply' }
+      }
+      steps {
+        dir('terraform') {
+          sh 'terraform apply -auto-approve tfplan'
+        }
+      }
+    }
+
+    stage('Terraform Destroy') {
+      when {
+        expression { params.TF_ACTION == 'destroy' }
+      }
+      steps {
+        dir('terraform') {
+          sh '''
+            terraform destroy -auto-approve \
+              -var="snowflake_account_name=${SNOWFLAKE_ACCOUNT_NAME}" \
+              -var="snowflake_org_name=${SNOWFLAKE_ORG_NAME}" \
+              -var="snowflake_user=${SNOWFLAKE_USER}" \
+              -var="snowflake_password=${SNOWFLAKE_PASSWORD}"
+          '''
+        }
+      }
+    }
+  }
+  post {
+    success {
+      dir('terraform') {
+        // Archive and fingerprint the tfstate file if it exists
+        script {
+          if (fileExists('terraform.tfstate')) {
+            archiveArtifacts artifacts: 'terraform.tfstate', fingerprint: true
+          }
         }
       }
     }
