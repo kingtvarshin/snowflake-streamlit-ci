@@ -47,19 +47,19 @@ variable "apps" {
   default = [
     {
       app_name   = "app1"
-      stage_name = "app1"
+      stage_name = "APP1"
       database   = "STREAMLIT_APPS"
       schema     = "APP"
     },
     {
       app_name   = "app2"
-      stage_name = "app2"
+      stage_name = "APP2"
       database   = "STREAMLIT_APPS"
       schema     = "APP"
     },
     {
       app_name   = "app3"
-      stage_name = "app3"
+      stage_name = "APP3"
       database   = "STREAMLIT_APPS"
       schema     = "APP"
     }
