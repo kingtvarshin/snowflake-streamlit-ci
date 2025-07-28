@@ -26,7 +26,7 @@ resource "null_resource" "upload_streamlit_script" {
       SNOWSQL_PWD = var.snowflake_password
     }
 
-    command = "snowsql -a ${var.snowflake_org_name}-${var.snowflake_account_name} -u ${var.snowflake_user} -r ${var.snowflake_role} -d ${each.value.database} -s ${each.value.schema} -f ../apps/${each.value.stage_name}/upload_app.sql"
+    command = "snowsql -a ${var.snowflake_org_name}-${var.snowflake_account_name} -u ${var.snowflake_user} -r ${var.snowflake_role} -d ${each.value.database} -s ${each.value.schema} -f ../apps/${each.value.app_name}/upload_app.sql"
   }
 
   triggers = {
