@@ -28,8 +28,8 @@ custodian_teams = df["custodian_team"].dropna().unique().tolist()
 selected_teams = st.sidebar.multiselect("Custodian Team", custodian_teams, default=custodian_teams)
 
 # --- Date range filter ---
-min_date = pd.to_datetime(df["record_created_on"], errors="coerce").min()
-max_date = pd.to_datetime(df["record_created_on"], errors="coerce").max()
+max_date = datetime.datetime.today() + datetime.timedelta(days=1)
+min_date = max_date - datetime.timedelta(days=31)
 date_range = st.sidebar.date_input(
     "Record Created On (Date Range)",
     value=(min_date.date() if pd.notnull(min_date) else datetime.date.today(),
@@ -187,7 +187,7 @@ if editable and st.button("Save Table Changes"):
                 rec[k] = None
     with open(DATA_FILE, "w") as f:
         json.dump(records, f, indent=2)
-    st.session_state["update_message"] = f"Table changes saved! {updated_count} row(s) updated."
+    # st.session_state["update_message"] = f"Table changes saved! {updated_count} row(s) updated."
     st.rerun()
 
 st.write("---")
