@@ -27,8 +27,8 @@ pipeline {
       steps {
         dir('terraform') {
           script {
-            if (fileExists("${WORKSPACE}\terraform.tfstate")) {
-              sh 'cp ${WORKSPACE}\terraform.tfstate .'
+            if (fileExists("${WORKSPACE}/terraform.tfstate")) {
+              sh 'cp ${WORKSPACE}/terraform.tfstate .'
             }
           }
         }
