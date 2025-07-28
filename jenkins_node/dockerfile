@@ -1,0 +1,23 @@
+FROM jenkins/inbound-agent:latest
+
+# Install additional tools
+USER root
+RUN apt-get update && apt-get install -y python3 nodejs wget
+
+# Install SnowSQL dependencies and SnowSQL
+RUN apt-get update && \
+    apt-get install -y wget libatomic1 alien && \
+    wget --https-only --retry-connrefused --waitretry=2 --tries=5 https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.4/linux_x86_64/snowflake-snowsql-1.4.3-1.x86_64.rpm && \
+    alien -d snowflake-snowsql-1.4.3-1.x86_64.rpm && \
+    dpkg -i snowflake-snowsql_1.4.3-2_amd64.deb && \
+    rm snowflake-snowsql-1.4.3-1.x86_64.rpm snowflake-snowsql_1.4.3-2_amd64.deb
+
+# Install Terraform
+RUN apt-get update && \
+    apt-get install -y gnupg software-properties-common && \
+    wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor > /usr/share/keyrings/hashicorp-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" > /etc/apt/sources.list.d/hashicorp.list && \
+    apt-get update && \
+    apt-get install -y terraform
+
+USER jenkins
