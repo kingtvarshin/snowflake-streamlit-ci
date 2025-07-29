@@ -4,7 +4,7 @@ variable "snowflake_account_name" {
 }
 
 variable "snowflake_org_name" {
-  description = "Your Snowflake account identifier"
+  description = "Your Snowflake organization name"
   type        = string
 }
 
