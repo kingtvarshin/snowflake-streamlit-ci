@@ -254,15 +254,19 @@ def go_next():
    if st.session_state.page < total_pages:
        st.session_state.page += 1
 
+# Helper function to validate page bounds
+def validate_page_bounds(total_pages):
+    st.session_state.page = max(1, min(st.session_state.page, total_pages))
+
 # Validate page bounds again just in case
-st.session_state.page = max(1, min(st.session_state.page, total_pages))
+validate_page_bounds(total_pages)
 start = (st.session_state.page - 1) * APPS_PER_PAGE
 end = start + APPS_PER_PAGE
 paginated_apps = filtered_apps[start:end]
-st.session_state.page = max(1, min(st.session_state.page, total_pages))
+validate_page_bounds(total_pages)
 
 # Ensure valid page
-st.session_state.page = max(1, min(st.session_state.page, total_pages))
+validate_page_bounds(total_pages)
 start = (st.session_state.page - 1) * APPS_PER_PAGE
 end = start + APPS_PER_PAGE
 paginated_apps = filtered_apps[start:end]
