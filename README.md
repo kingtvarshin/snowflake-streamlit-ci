@@ -36,15 +36,19 @@ You can quickly spin up a Jenkins agent node using Docker, pre-configured with a
 
 **Build the Docker image:**
 ```sh
-docker build -t docker-jenkins-agent ./jenkins_node
+docker build -t docker-jenkins-agent .
 ```
 
 **Run the Jenkins agent container:**
+remove old container if connection is broken
+```sh
+  docker container rm <container_ID> --force
+```
 ```sh
 docker run -d --name docker-jenkins-agent \
-  -e JENKINS_SECRET=<your-agent-secret> \
+  -e JENKINS_URL=http://<jenkins-server>:<port> \
   -e JENKINS_AGENT_NAME=docker-jenkins-agent \
-  -e JENKINS_URL=http://<jenkins-server>:8080 \
+  -e JENKINS_SECRET=<your-agent-secret> \
   docker-jenkins-agent
 ```
 - Replace `<your-agent-secret>` and `<jenkins-server>` with your Jenkins values.
