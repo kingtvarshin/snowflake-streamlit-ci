@@ -109,5 +109,6 @@ for i in range(1, N+1):
         "tagged": tagged
     })
 
-with open("d:/Github/snowflake-streamlit-ci/apps/app3/data.json", "w") as f:
+output_path = os.path.join(os.path.dirname(__file__), "data.json")
+with open(output_path, "w") as f:
     json.dump(data, f, indent=2)
