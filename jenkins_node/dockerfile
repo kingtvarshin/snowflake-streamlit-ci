@@ -8,9 +8,11 @@ RUN apt-get update && apt-get install -y python3 nodejs wget
 RUN apt-get update && \
     apt-get install -y wget libatomic1 alien && \
     wget --https-only --retry-connrefused --waitretry=2 --tries=5 https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.4/linux_x86_64/snowflake-snowsql-1.4.3-1.x86_64.rpm && \
+    wget --https-only --retry-connrefused --waitretry=2 --tries=5 https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.4/linux_x86_64/snowflake-snowsql-1.4.3-1.x86_64.rpm.sha256 && \
+    sha256sum -c snowflake-snowsql-1.4.3-1.x86_64.rpm.sha256 && \
     alien -d snowflake-snowsql-1.4.3-1.x86_64.rpm && \
     dpkg -i snowflake-snowsql_1.4.3-2_amd64.deb && \
-    rm snowflake-snowsql-1.4.3-1.x86_64.rpm snowflake-snowsql_1.4.3-2_amd64.deb
+    rm snowflake-snowsql-1.4.3-1.x86_64.rpm snowflake-snowsql-1.4.3-2_amd64.deb snowflake-snowsql-1.4.3-1.x86_64.rpm.sha256
 
 # Install Terraform
 RUN apt-get update && \
