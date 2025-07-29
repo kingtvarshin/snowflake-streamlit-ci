@@ -1,0 +1,112 @@
+pipeline {
+  agent { label 'docker-jenkins-agent' }
+  options {
+    ansiColor('xterm')
+  }
+  
+  parameters {
+    string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Git branch to deploy')
+    choice(name: 'TF_ACTION', choices: ['plan', 'apply', 'destroy'], description: 'Terraform action to run')
+  }
+
+  environment {
+    SNOWFLAKE_ACCOUNT_NAME = credentials('SNOWFLAKE_ACCOUNT_NAME')
+    SNOWFLAKE_ORG_NAME     = credentials('SNOWFLAKE_ORG_NAME')
+    SNOWFLAKE_USER         = credentials('SNOWFLAKE_USER')
+    SNOWFLAKE_PASSWORD     = credentials('SNOWFLAKE_PASSWORD')
+    PATH                   = "/usr/local/bin:/usr/bin:/bin:/snap/bin"
+  }
+
+  stages {
+    stage('Clone Repo') {
+      steps {
+        script {
+          def allowedBranches = ['main', 'develop', 'feature/*']
+          def branchName = params.BRANCH_NAME
+          if (!allowedBranches.any { branchName ==~ it }) {
+            error "Invalid branch name: ${branchName}. Allowed branches are: ${allowedBranches.join(', ')}"
+          }
+        }
+        git url: 'https://github.com/kingtvarshin/snowflake-streamlit-ci.git', branch: "${params.BRANCH_NAME}"
+      }
+    }
+    stage('Restore tfstate') {
+      steps {
+        dir('terraform') {
+          script {
+            if (fileExists("${WORKSPACE}/terraform.tfstate")) {
+              sh 'cp ${WORKSPACE}/terraform.tfstate .'
+            }
+          }
+        }
+      }
+    }
+    stage('Terraform Init') {
+      steps {
+        dir('terraform') {
+          sh 'terraform init'
+        }
+      }
+    }
+    stage('Terraform Plan') {
+      when {
+        anyOf {
+          expression { params.TF_ACTION == 'plan' }
+          expression { params.TF_ACTION == 'apply' }
+        }
+      }
+      steps {
+        dir('terraform') {
+          sh '''
+            terraform plan \
+              -out=tfplan \
+              -var="snowflake_account_name=${SNOWFLAKE_ACCOUNT_NAME}" \
+              -var="snowflake_org_name=${SNOWFLAKE_ORG_NAME}" \
+              -var="snowflake_user=${SNOWFLAKE_USER}" \
+              -var="snowflake_password=${SNOWFLAKE_PASSWORD}"
+          '''
+        }
+      }
+    }
+
+    stage('Terraform Apply') {
+      when {
+        expression { params.TF_ACTION == 'apply' }
+      }
+      steps {
+        dir('terraform') {
+          sh 'terraform apply -auto-approve tfplan'
+        }
+      }
+    }
+
+    stage('Terraform Destroy') {
+      when {
+        expression { params.TF_ACTION == 'destroy' }
+      }
+      steps {
+        dir('terraform') {
+          sh '''
+            terraform destroy -auto-approve \
+              -var="snowflake_account_name=${SNOWFLAKE_ACCOUNT_NAME}" \
+              -var="snowflake_org_name=${SNOWFLAKE_ORG_NAME}" \
+              -var="snowflake_user=${SNOWFLAKE_USER}" \
+              -var="snowflake_password=${SNOWFLAKE_PASSWORD}"
+          '''
+        }
+      }
+    }
+  }
+  post {
+    success {
+      dir('terraform') {
+        // Archive and fingerprint the tfstate file if it exists
+        script {
+          if (fileExists('terraform.tfstate')) {
+            archiveArtifacts artifacts: 'terraform.tfstate', fingerprint: true
+          }
+        }
+      }
+    }
+  }
+}
