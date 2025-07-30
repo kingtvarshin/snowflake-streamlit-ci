@@ -21,9 +21,9 @@ pipeline {
     stage('Clone Repo') {
       steps {
         script {
-          def allowedBranches = ['main', 'develop', 'feature/*']
+          def allowedBranches = ['main', 'develop', ~/feature\/.*/]
           def branchName = params.BRANCH_NAME
-          if (!allowedBranches.any { branchName ==~ it }) {
+          if (!allowedBranches.any { branchName == it || branchName ==~ it }) {
             error "Invalid branch name: ${branchName}. Allowed branches are: ${allowedBranches.join(', ')}"
           }
         }
