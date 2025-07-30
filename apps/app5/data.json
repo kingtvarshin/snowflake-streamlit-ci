@@ -1,0 +1,86 @@
+[
+  {
+    "Collibra Data set name": "ABC sample Data",
+    "Supplier": "XYZ",
+    "Date & time of contact - Observed (EST)": "2025-07-01 10:30:00",
+    "Time spent in supplier Interaction (mins)": 10.0,
+    "Point of contact": "full_name",
+    "Who from company was involved?": "full_name2",
+    "Reason": "supplier files not available due to delay in files generation",
+    "Category": "supplier files not available",
+    "Supplier Inputs": "Provided latest files",
+    "Closing Remarks company": "latest files arrived late and loaded Data successfully"
+  },
+  {
+    "Collibra Data set name": "EFG sample Data",
+    "Supplier": "UVW",
+    "Date & time of contact - Observed (EST)": "2025-06-01 10:30:00",
+    "Time spent in supplier Interaction (mins)": 15.0,
+    "Point of contact": "full_name3",
+    "Who from company was involved?": "full_name2",
+    "Reason": "supplier files wrong schema definition",
+    "Category": "supplier files not correct",
+    "Supplier Inputs": "Provided updated files",
+    "Closing Remarks company": "correct files loaded and Data upto Date"
+  },
+  {
+    "Collibra Data set name": "HIJ sample Data",
+    "Supplier": "RST",
+    "Date & time of contact - Observed (EST)": "2025-04-02 19:30:00",
+    "Time spent in supplier Interaction (mins)": 50.0,
+    "Point of contact": "full_name4",
+    "Who from company was involved?": "full_name5",
+    "Reason": "new column introduced by supplier",
+    "Category": "schema mismatch",
+    "Supplier Inputs": "new column to be added to the table",
+    "Closing Remarks company": "new column added to the table"
+  },
+  {
+    "Collibra Data set name": "KLM",
+    "Supplier": "UVW",
+    "Date & time of contact - Observed (EST)": "NaT",
+    "Time spent in supplier Interaction (mins)": 120.0,
+    "Point of contact": "MG",
+    "Who from company was involved?": "VS",
+    "Reason": "new column introduced by supplier",
+    "Category": "schema mismatch",
+    "Supplier Inputs": "new column to be added to the table",
+    "Closing Remarks company": "new column added to the table"
+  },
+  {
+    "Collibra Data set name": "ghfdh",
+    "Supplier": "ghh",
+    "Date & time of contact - Observed (EST)": "NaT",
+    "Time spent in supplier Interaction (mins)": 0.0,
+    "Point of contact": "ghhgh",
+    "Who from company was involved?": "hghg",
+    "Reason": "hgh",
+    "Category": "hg",
+    "Supplier Inputs": "ghgh",
+    "Closing Remarks company": "hghg"
+  },
+  {
+    "Collibra Data set name": "NOP",
+    "Supplier": "RST",
+    "Date & time of contact - Observed (EST)": "NaT",
+    "Time spent in supplier Interaction (mins)": 2.0,
+    "Point of contact": "RV",
+    "Who from company was involved?": "NP",
+    "Reason": "just for test",
+    "Category": "testing",
+    "Supplier Inputs": "no data to be given",
+    "Closing Remarks company": "no data expected"
+  },
+  {
+    "Collibra Data set name": null,
+    "Supplier": "XYZ",
+    "Date & time of contact - Observed (EST)": "2025-07-31 02:25:00",
+    "Time spent in supplier Interaction (mins)": 0.0,
+    "Point of contact": null,
+    "Who from company was involved?": null,
+    "Reason": null,
+    "Category": null,
+    "Supplier Inputs": null,
+    "Closing Remarks company": null
+  }
+]
