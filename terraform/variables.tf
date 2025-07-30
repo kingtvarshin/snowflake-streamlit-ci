@@ -62,6 +62,12 @@ variable "apps" {
       stage_name = "APP3"
       database   = "STREAMLIT_APPS"
       schema     = "APP"
+    },
+    {
+      app_name   = "app5"
+      stage_name = "APP5"
+      database   = "STREAMLIT_APPS"
+      schema     = "APP"
     }
   ]
 }
